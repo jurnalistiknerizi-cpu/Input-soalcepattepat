@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Input Soal – Cepat Tepat</title>
+<style>
+  :root {
+    --bg: #f3f6f4;
+    --surface: #ffffff;
+    --text: #15231d;
+    --muted: #5c6b64;
+    --line: #d3ddd8;
+    --accent: #0f7a5a;
+    --accent-text: #ffffff;
+    --danger: #b3261e;
+    --ok-bg: #dff3ea;
+    --err-bg: #fbe3e1;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1a15;
+      --surface: #17251e;
+      --text: #e6f0eb;
+      --muted: #93a69c;
+      --line: #2b3d34;
+      --accent: #3fc79b;
+      --accent-text: #08261b;
+      --danger: #ff8a80;
+      --ok-bg: #173a2c;
+      --err-bg: #4a2220;
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+    line-height: 1.5; padding: 16px;
+  }
+  main { max-width: 640px; margin: 0 auto; }
+  h1 { font-size: 1.5rem; margin: 8px 0 2px; }
+  .sub { color: var(--muted); margin: 0 0 20px; font-size: .95rem; }
+  form { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px; }
+  label, .lbl { display: block; font-weight: 600; font-size: .9rem; margin: 16px 0 6px; }
+  label:first-child { margin-top: 0; }
+  .hint { font-weight: 400; color: var(--muted); }
+  input[type=text], input[type=url], select, textarea {
+    width: 100%; padding: 10px 12px; font: inherit; color: var(--text);
+    background: var(--bg); border: 1px solid var(--line); border-radius: 8px;
+  }
+  textarea { min-height: 90px; resize: vertical; }
+  input:focus, select:focus, textarea:focus, button:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 1px;
+  }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 520px) { .row { grid-template-columns: 1fr; } }
+  .opt { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .opt input[type=text] { flex: 1; }
+  .opt .letter {
+    flex: none; width: 34px; height: 34px; border-radius: 50%;
+    display: grid; place-items: center; font-weight: 700;
+    border: 1px solid var(--line); background: var(--bg); cursor: pointer;
+  }
+  .opt input[type=radio] { position: absolute; opacity: 0; pointer-events: none; }
+  .opt input[type=radio]:checked + .letter { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+  .opt input[type=radio]:focus-visible + .letter { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .keyinfo { font-size: .85rem; color: var(--muted); margin: -2px 0 0; }
+  button {
+    font: inherit; font-weight: 600; border: 0; border-radius: 8px; cursor: pointer;
+    padding: 12px 18px; background: var(--accent); color: var(--accent-text); width: 100%; margin-top: 20px;
+  }
+  button:disabled { opacity: .6; cursor: wait; }
+  button.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); margin-top: 10px; }
+  #preview { display: none; margin-top: 12px; text-align: center; }
+  #preview img { max-width: 100%; max-height: 220px; border-radius: 8px; border: 1px solid var(--line); }
+  #msg { margin-top: 14px; padding: 12px 14px; border-radius: 8px; display: none; font-size: .95rem; }
+  #msg.ok { display: block; background: var(--ok-bg); }
+  #msg.err { display: block; background: var(--err-bg); color: var(--danger); }
+  .count { color: var(--muted); font-size: .85rem; margin-top: 10px; text-align: center; }
+  details { margin-top: 16px; font-size: .85rem; color: var(--muted); }
+  details input { margin-top: 6px; }
+  .tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+  .tab { margin: 0; width: auto; flex: 1; background: transparent; color: var(--muted); border: 1px solid var(--line); }
+  .tab[aria-selected=true] { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px; }
+  .panel[hidden], form[hidden] { display: none; }
+  input[type=file] { width: 100%; padding: 10px; font: inherit; color: var(--text); background: var(--bg); border: 1px dashed var(--line); border-radius: 8px; }
+  .tablewrap { overflow-x: auto; margin-top: 14px; border: 1px solid var(--line); border-radius: 8px; max-height: 320px; overflow-y: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: .82rem; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { position: sticky; top: 0; background: var(--surface); }
+  td.s-ok { color: var(--accent); font-weight: 600; }
+  td.s-err { color: var(--danger); }
+  progress { width: 100%; margin-top: 12px; display: none; }
+  .small { font-size: .85rem; color: var(--muted); margin: 6px 0 0; }
+  .linkbtn { background: none; border: 0; padding: 0; margin: 0; width: auto; color: var(--accent); text-decoration: underline; font-weight: 600; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Input soal Cepat Tepat</h1>
+  <p class="sub">Soal akan langsung masuk ke sheet mata pelajaran yang dipilih.</p>
+
+  <div class="tabs" role="tablist">
+    <button type="button" class="tab" role="tab" id="tabManual" aria-selected="true">Input manual</button>
+    <button type="button" class="tab" role="tab" id="tabImport" aria-selected="false">Impor Excel</button>
+  </div>
+
+  <form id="f" autocomplete="off">
+    <div class="row">
+      <div>
+        <label for="mapel">Mata pelajaran</label>
+        <select id="mapel" required><option value="">Memuat…</option></select>
+      </div>
+      <div>
+        <label for="materi">Materi <span class="hint">(opsional)</span></label>
+        <input type="text" id="materi" list="materiList" placeholder="mis. Perkalian">
+        <datalist id="materiList"></datalist>
+      </div>
+    </div>
+
+    <label for="soal">Pertanyaan</label>
+    <textarea id="soal" required placeholder="Tulis pertanyaan di sini…"></textarea>
+
+    <label for="gambar">Link gambar Drive <span class="hint">(opsional)</span></label>
+    <input type="url" id="gambar" placeholder="https://drive.google.com/file/d/…">
+    <div id="preview"><img id="prevImg" alt="Pratinjau gambar"></div>
+
+    <span class="lbl">Pilihan jawaban <span class="hint">– ketuk huruf untuk menandai kunci</span></span>
+    <div class="opt"><input type="radio" name="kunci" id="kA" value="A"><label class="letter" for="kA">A</label><input type="text" id="oa" aria-label="Pilihan A" required></div>
+    <div class="opt"><input type="radio" name="kunci" id="kB" value="B"><label class="letter" for="kB">B</label><input type="text" id="ob" aria-label="Pilihan B" required></div>
+    <div class="opt"><input type="radio" name="kunci" id="kC" value="C"><label class="letter" for="kC">C</label><input type="text" id="oc" aria-label="Pilihan C" required></div>
+    <div class="opt"><input type="radio" name="kunci" id="kD" value="D"><label class="letter" for="kD">D</label><input type="text" id="od" aria-label="Pilihan D" required></div>
+    <p class="keyinfo" id="keyinfo">Kunci jawaban belum dipilih.</p>
+
+    <button type="submit" id="btn">Simpan soal</button>
+    <button type="button" class="ghost" id="reset">Kosongkan form</button>
+
+    <div id="msg" role="status"></div>
+    <div class="count" id="count"></div>
+
+  </form>
+
+  <section class="panel" id="importPanel" hidden>
+    <label for="mapel2">Mata pelajaran tujuan</label>
+    <select id="mapel2"><option value="">Memuat…</option></select>
+
+    <label for="file">File Excel atau CSV</label>
+    <input type="file" id="file" accept=".xlsx,.xls,.csv">
+    <p class="small">Kolom: soal, materi, gambar, opt_a, opt_b, opt_c, opt_d, kunci. Baris pertama boleh berupa judul kolom. Hanya sheet pertama yang dibaca. <button type="button" class="linkbtn" id="tpl">Unduh template</button></p>
+
+    <div class="tablewrap" id="tw" style="display:none"><table id="tbl"></table></div>
+    <p class="small" id="sum"></p>
+    <progress id="prog" value="0" max="1"></progress>
+    <button type="button" id="goImport" disabled>Impor soal</button>
+    <div id="msg2" role="status" style="margin-top:14px;padding:12px 14px;border-radius:8px;display:none"></div>
+  </section>
+
+  <details>
+    <summary>Pengaturan URL Apps Script</summary>
+    <input type="url" id="api" aria-label="URL Apps Script">
+  </details>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<script>
+  const DEFAULT_API = "https://script.google.com/macros/s/AKfycbzXYYXeeLxZUGS1b96P2fdE4_8nNjt58n6om_w9JNVQXeTcXEqIkaEVsxiBGLqVb77X/exec";
+  const $ = id => document.getElementById(id);
+  const apiEl = $("api");
+  apiEl.value = DEFAULT_API;
+  let saved = 0;
+
+  function show(text, type) {
+    const m = $("msg");
+    m.className = type;
+    m.textContent = text;
+  }
+
+  async function getJSON(params) {
+    const url = apiEl.value.trim() + "?" + new URLSearchParams(params).toString();
+    const res = await fetch(url);
+    return res.json();
+  }
+
+  // Muat daftar mapel
+  async function loadMapel() {
+    const sel = $("mapel");
+    try {
+      const r = await getJSON({ action: "getMapel" });
+      if (r.status !== "ok") throw new Error(r.message);
+      const opts = '<option value="">Pilih mata pelajaran</option>' +
+        r.data.map(m => `<option value="${m}">${m}</option>`).join("");
+      sel.innerHTML = opts;
+      $("mapel2").innerHTML = opts;
+    } catch (e) {
+      sel.innerHTML = '<option value="">Gagal memuat</option>';
+      show("Daftar mata pelajaran gagal dimuat. Periksa URL Apps Script dan pastikan sudah di-deploy untuk 'Anyone'.", "err");
+    }
+  }
+
+  // Muat materi untuk saran ketikan
+  async function loadMateri() {
+    const mapel = $("mapel").value;
+    $("materiList").innerHTML = "";
+    if (!mapel) return;
+    try {
+      const r = await getJSON({ action: "getMateri", mapel });
+      if (r.status === "ok") {
+        $("materiList").innerHTML = r.data.map(m => `<option value="${m.replace(/"/g, "&quot;")}">`).join("");
+      }
+    } catch (e) { /* saran materi bersifat opsional */ }
+  }
+
+  $("mapel").addEventListener("change", loadMateri);
+  apiEl.addEventListener("change", loadMapel);
+
+  // Pratinjau gambar dari link Drive
+  function driveThumb(u) {
+    u = u.trim();
+    if (!u) return "";
+    if (u.indexOf("drive.google.com") === -1) return u;
+    const m = u.match(/[-\w]{25,}/);
+    return m ? "https://drive.google.com/thumbnail?id=" + m[0] + "&sz=w600" : "";
+  }
+  $("gambar").addEventListener("input", e => {
+    const src = driveThumb(e.target.value);
+    $("preview").style.display = src ? "block" : "none";
+    $("prevImg").src = src;
+  });
+
+  document.querySelectorAll("input[name=kunci]").forEach(r =>
+    r.addEventListener("change", () => $("keyinfo").textContent = "Kunci jawaban: " + r.value + "."));
+
+  function clearQuestion() {
+    ["soal", "gambar", "oa", "ob", "oc", "od"].forEach(id => $(id).value = "");
+    document.querySelectorAll("input[name=kunci]").forEach(r => r.checked = false);
+    $("keyinfo").textContent = "Kunci jawaban belum dipilih.";
+    $("preview").style.display = "none";
+  }
+  $("reset").addEventListener("click", () => { clearQuestion(); show("", ""); $("msg").style.display = "none"; });
+
+  $("f").addEventListener("submit", async ev => {
+    ev.preventDefault();
+    const kunciEl = document.querySelector("input[name=kunci]:checked");
+    if (!kunciEl) { show("Pilih kunci jawaban dulu dengan mengetuk huruf A, B, C, atau D.", "err"); return; }
+
+    const payload = {
+      action: "addSoal",
+      mapel : $("mapel").value,
+      materi: $("materi").value.trim(),
+      soal  : $("soal").value.trim(),
+      gambar: $("gambar").value.trim(),
+      opt_a : $("oa").value.trim(),
+      opt_b : $("ob").value.trim(),
+      opt_c : $("oc").value.trim(),
+      opt_d : $("od").value.trim(),
+      kunci : kunciEl.value
+    };
+
+    const btn = $("btn");
+    btn.disabled = true; btn.textContent = "Menyimpan…";
+    const url = apiEl.value.trim();
+    // text/plain menghindari preflight CORS yang tidak didukung Apps Script
+    const opts = { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) };
+
+    try {
+      let ok = false, message = "";
+      try {
+        const res = await fetch(url, opts);
+        const r = await res.json();
+        ok = r.status === "ok"; message = r.message;
+      } catch (corsErr) {
+        // Cadangan: kirim tanpa membaca respons (no-cors)
+        await fetch(url, { ...opts, mode: "no-cors" });
+        ok = true; message = "Soal terkirim ke " + payload.mapel + " (respons tidak bisa dibaca browser, cek sheet untuk memastikan).";
+      }
+      if (ok) {
+        saved++;
+        show(message || "Soal tersimpan.", "ok");
+        $("count").textContent = saved + " soal disimpan pada sesi ini";
+        clearQuestion();
+        $("soal").focus();
+        loadMateri();
+      } else {
+        show(message || "Soal gagal disimpan.", "err");
+      }
+    } catch (e) {
+      show("Tidak bisa terhubung ke Apps Script. Periksa koneksi dan URL deploy.", "err");
+    } finally {
+      btn.disabled = false; btn.textContent = "Simpan soal";
+    }
+  });
+
+  // ---------- Tab ----------
+  function setTab(imp) {
+    $("f").hidden = imp;
+    $("importPanel").hidden = !imp;
+    $("tabManual").setAttribute("aria-selected", String(!imp));
+    $("tabImport").setAttribute("aria-selected", String(imp));
+  }
+  $("tabManual").addEventListener("click", () => setTab(false));
+  $("tabImport").addEventListener("click", () => setTab(true));
+
+  // ---------- Impor Excel ----------
+  const FIELDS = ["soal", "materi", "gambar", "opt_a", "opt_b", "opt_c", "opt_d", "kunci"];
+  const ALIAS = {
+    soal: ["soal", "pertanyaan"], materi: ["materi"], gambar: ["gambar", "link gambar"],
+    opt_a: ["opt_a", "a", "pilihan a", "opsi a"], opt_b: ["opt_b", "b", "pilihan b", "opsi b"],
+    opt_c: ["opt_c", "c", "pilihan c", "opsi c"], opt_d: ["opt_d", "d", "pilihan d", "opsi d"],
+    kunci: ["kunci", "kunci jawaban", "jawaban"]
+  };
+  const norm = v => String(v == null ? "" : v).trim().toLowerCase();
+  const esc = v => String(v).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  let imp = [];
+
+  function parseRows(aoa) {
+    aoa = aoa.filter(r => r.some(c => String(c).trim() !== ""));
+    if (!aoa.length) return [];
+    const first = aoa[0].map(norm);
+    const hasHeader = first.includes("soal") || first.includes("pertanyaan");
+    let idx = {};
+    if (hasHeader) {
+      FIELDS.forEach(f => { idx[f] = first.findIndex(h => ALIAS[f].includes(h)); });
+      aoa = aoa.slice(1);
+    } else {
+      FIELDS.forEach((f, i) => idx[f] = i);
+    }
+    return aoa.map(r => {
+      const o = {};
+      FIELDS.forEach(f => o[f] = idx[f] >= 0 ? String(r[idx[f]] == null ? "" : r[idx[f]]).trim() : "");
+      o.kunci = o.kunci.toUpperCase();
+      const miss = ["soal", "opt_a", "opt_b", "opt_c", "opt_d"].filter(f => !o[f]);
+      if (miss.length) o.err = "Kolom kosong: " + miss.join(", ");
+      else if (!["A", "B", "C", "D"].includes(o.kunci)) o.err = "Kunci harus A/B/C/D";
+      return o;
+    });
+  }
+
+  function renderPreview() {
+    const valid = imp.filter(o => !o.err).length;
+    $("tw").style.display = imp.length ? "block" : "none";
+    $("tbl").innerHTML = "<tr><th>#</th><th>Soal</th><th>Materi</th><th>Kunci</th><th>Status</th></tr>" +
+      imp.map((o, i) => `<tr><td>${i + 1}</td><td>${esc(o.soal).slice(0, 80)}</td><td>${esc(o.materi)}</td><td>${esc(o.kunci)}</td>` +
+        `<td id="st${i}" class="${o.err ? "s-err" : ""}">${o.err ? esc(o.err) : "Siap"}</td></tr>`).join("");
+    $("sum").textContent = imp.length
+      ? `${imp.length} baris terbaca: ${valid} valid, ${imp.length - valid} bermasalah (dilewati).` : "Tidak ada baris yang terbaca.";
+    $("goImport").disabled = valid === 0;
+    $("goImport").textContent = valid ? `Impor ${valid} soal` : "Impor soal";
+  }
+
+  $("file").addEventListener("change", async e => {
+    const f = e.target.files[0];
+    $("msg2").style.display = "none";
+    if (!f) return;
+    try {
+      const wb = XLSX.read(await f.arrayBuffer(), { type: "array" });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      imp = parseRows(XLSX.utils.sheet_to_json(ws, { header: 1, defval: "", raw: false }));
+      renderPreview();
+    } catch (err) {
+      imp = []; renderPreview();
+      show2("File tidak bisa dibaca. Gunakan format .xlsx, .xls, atau .csv.", "err");
+    }
+  });
+
+  function show2(text, type) {
+    const m = $("msg2");
+    m.style.display = "block";
+    m.className = type;
+    m.textContent = text;
+  }
+
+  $("tpl").addEventListener("click", () => {
+    const ws = XLSX.utils.aoa_to_sheet([
+      FIELDS,
+      ["Ibukota Indonesia adalah …", "Geografi", "", "Bandung", "Surabaya", "Jakarta", "Medan", "C"],
+      ["Berapa hasil dari 7 × 8?", "Perkalian", "", "54", "56", "58", "60", "B"]
+    ]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "soal");
+    XLSX.writeFile(wb, "template-soal.xlsx");
+  });
+
+  async function sendSoal(payload) {
+    const url = apiEl.value.trim();
+    const opts = { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) };
+    try {
+      const r = await (await fetch(url, opts)).json();
+      return { ok: r.status === "ok", message: r.message, unverified: false };
+    } catch (e) {
+      try { await fetch(url, { ...opts, mode: "no-cors" }); return { ok: true, unverified: true }; }
+      catch (e2) { return { ok: false, message: "Tidak terhubung" }; }
+    }
+  }
+
+  $("goImport").addEventListener("click", async () => {
+    const mapel = $("mapel2").value;
+    if (!mapel) { show2("Pilih mata pelajaran tujuan dulu.", "err"); return; }
+    const btn = $("goImport"), prog = $("prog");
+    const todo = imp.map((o, i) => ({ o, i })).filter(x => !x.o.err);
+    btn.disabled = true; $("file").disabled = true;
+    prog.style.display = "block"; prog.max = todo.length; prog.value = 0;
+    $("msg2").style.display = "none";
+    let ok = 0, fail = 0, unver = false;
+    for (const { o, i } of todo) {
+      const cell = $("st" + i);
+      cell.textContent = "Mengirim…";
+      const r = await sendSoal({ action: "addSoal", mapel, materi: o.materi, soal: o.soal, gambar: o.gambar,
+        opt_a: o.opt_a, opt_b: o.opt_b, opt_c: o.opt_c, opt_d: o.opt_d, kunci: o.kunci });
+      if (r.ok) { ok++; unver = unver || r.unverified; cell.className = "s-ok"; cell.textContent = "Tersimpan"; }
+      else { fail++; cell.className = "s-err"; cell.textContent = r.message || "Gagal"; }
+      prog.value++;
+    }
+    $("file").disabled = false;
+    show2(`${ok} soal diimpor ke ${mapel}` + (fail ? `, ${fail} gagal.` : ".") +
+      (unver ? " Respons server tidak bisa dibaca browser, cek sheet untuk memastikan." : ""), fail ? "err" : "ok");
+    btn.textContent = "Impor ulang yang gagal";
+    imp = imp.map((o, i) => (o.err || (document.getElementById("st" + i).className === "s-ok")) ? { ...o, err: o.err || "Sudah tersimpan" } : o);
+    btn.disabled = fail === 0;
+    if (fail) { btn.textContent = `Impor ulang ${fail} soal gagal`; }
+    loadMateri();
+  });
+
+  loadMapel();
+</script>
+</body>
+</html>
